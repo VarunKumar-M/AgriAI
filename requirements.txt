@@ -7,3 +7,9 @@ faiss-cpu  # Required for FAISS vector storage
 google-generativeai
 tiktoken  # Tokenizer required for LangChain
 googletrans
+streamlit
+python-dotenv
+deep-translator
+langchain
+langchain-google-genai
+google-generativeai
