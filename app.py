@@ -1,9 +1,9 @@
 import os
 import streamlit as st
 from dotenv import load_dotenv
-from langchain_google_genai import GoogleGenerativeAI  
-from langdetect import detect
-import requests
+from retriever import retriever  # Importing TXT retriever
+from langchain_google_genai import GoogleGenerativeAI  # Gemini AI for final response
+from googletrans import Translator  # Auto-detect & translate languages
 
 # Load environment variables
 load_dotenv()
@@ -12,128 +12,67 @@ GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("Google API Key is missing. Set it in a .env file or as an environment variable.")
 
-# Initialize Gemini 1.5 Flash AI
+# Initialize Gemini AI
 gemini = GoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=GEMINI_API_KEY)
 
-# Streamlit UI Configuration
+# Initialize Translator
+translator = Translator()
+
+# Streamlit UI
 st.set_page_config(page_title="AgriGPT", page_icon="🌱", layout="wide")
+st.title("🌱 AgriGPT - Your Agriculture Chatbot")
+st.write("Ask anything about agriculture, farming, or crop management.")
 
-st.title("🌱 AgriGPT - Smart Agriculture Assistant")
-st.write("Get farming insights, soil conditions, temperature, and more.")
+# Function: Detect & Translate Query to English
+def translate_to_english(query):
+    detected_lang = translator.detect(query).lang
+    if detected_lang != "en":
+        query = translator.translate(query, src=detected_lang, dest="en").text
+    return query, detected_lang
 
-# **Location, Soil & Temperature Data**
-def get_location():
-    try:
-        res = requests.get("https://ipinfo.io/json").json()
-        city = res.get("city", "Unknown")
-        loc = res.get("loc", "0,0").split(",")
-        return city, float(loc[0]), float(loc[1])
-    except:
-        return "Unknown", 0, 0
+# Function: Translate Response Back to User's Language
+def translate_response(response, target_lang):
+    if target_lang != "en":
+        response = translator.translate(response, src="en", dest=target_lang).text
+    return response
 
-def get_temperature(lat, lon):
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
-    try:
-        res = requests.get(url).json()
-        return res["current_weather"]["temperature"]
-    except:
-        return "N/A"
-
-def get_soil_info(lat, lon):
-    url = f"https://rest.soilgrids.org/query?lon={lon}&lat={lat}"
-    try:
-        res = requests.get(url).json()
-        soil_type = res["properties"]["classification"]["dominant"].get("WRB", "Unknown Soil Type")
-        return soil_type
-    except:
-        return "Data not available"
-
-# Get user location, soil type, and temperature
-city, lat, lon = get_location()
-temperature = get_temperature(lat, lon)
-soil_type = get_soil_info(lat, lon)
-
-st.markdown(f"📍 **Location:** {city}  \n🌡 **Temperature:** {temperature}°C  \n🌱 **Soil Type:** {soil_type}")
-
-# **Language Selection**
-lang_options = {
-    "Auto (Detect Language)": "auto",
-    "English": "en", "Hindi (हिंदी)": "hi", "Kannada (ಕನ್ನಡ)": "kn",
-    "Tamil (தமிழ்)": "ta", "Telugu (తెలుగు)": "te", "Marathi (मराठी)": "mr",
-    "Gujarati (ગુજરાતી)": "gu", "Malayalam (മലയാളം)": "ml", "Punjabi (ਪੰਜਾਬੀ)": "pa",
-    "Bengali (বাংলা)": "bn", "Urdu (اردو)": "ur", "Spanish (Español)": "es",
-    "French (Français)": "fr", "German (Deutsch)": "de", "Chinese (中文)": "zh",
-    "Arabic (العربية)": "ar", "Portuguese (Português)": "pt", "Russian (Русский)": "ru"
-}
-selected_lang = st.selectbox("Choose your language:", list(lang_options.keys()))
-
-# **Text Structuring Mode Selection**
-structure_mode = st.selectbox(
-    "Choose text structuring mode:",
-    ["Bullet Points", "Step-by-Step Instructions", "Tabular Format", "Detailed Paragraphs"]
-)
-
-# **User Input**
+# User Input
 query = st.text_input("Enter your question:")
 
 if st.button("Ask"):
     if query:
-        # **Detect or Set Language**
-        if lang_options[selected_lang] == "auto":
-            try:
-                response_lang = detect(query)
-            except:
-                response_lang = "en"  # Default to English if detection fails
-        else:
-            response_lang = lang_options[selected_lang]
+        translated_query, user_lang = translate_to_english(query)  # Auto-translate query to English
+        retrieved_text = retriever.retrieve_relevant_text(translated_query)  # Retrieve relevant text
 
-        # **Logical Reasoning & Thoughtful Processing**
+        # Construct AI Prompt
         prompt = f"""
-        You are **AgriGPT**, an intelligent, professional, and logical agricultural assistant.  
-        Your goal is to provide well-reasoned, structured, and logically sound answers.  
-        You **do not generate random answers**—instead, you **analyze the question**, apply reasoning, and give a **precise yet justified** response.
+        You are an expert in agriculture. Answer the following question in simple, accurate language.
 
-        ### **How You Should Respond:**
-        - **Think before answering.**  
-        - **Break down complex topics** step by step.  
-        - **Justify why a particular answer is correct.**  
-        - **Do not assert things blindly**—explain logically.  
-        - **Acknowledge uncertainty when needed**, instead of making up responses.  
+        **User Question:** {translated_query}
 
-        ### **Response Structuring Mode: {structure_mode}**
-        - If **Bullet Points**, present in clear, concise points.
-        - If **Step-by-Step Instructions**, outline the process logically.
-        - If **Tabular Format**, use tables for structured comparisons.
-        - If **Detailed Paragraphs**, provide an in-depth explanation.
-
-        ### **Additional Information Based on User's Location:**
-        - 📍 **Location:** {city}  
-        - 🌡 **Temperature:** {temperature}°C  
-        - 🌱 **Soil Type:** {soil_type}  
-
-        ### **User Query (Language: {response_lang}):**  
-        {query}
-
-        ### **Response Output Guidelines:**
-        - **Direct, logically justified answer**.  
-        - **Formatted according to chosen structuring mode**.  
-        - **Adapt response length based on query complexity**.  
-        - **If query is unprofessional, reply intelligently without engaging**.  
+        **Instructions:**  
+        - Give a **clear, concise** response.  
+        - Provide **detailed explanations** only if the user explicitly asks for it.  
+        - If unsure, give a general agricultural answer instead of leaving it blank.  
         """
 
-        # **Generate Response**
-        response = gemini.invoke(prompt)
+        # Get response from Gemini AI
+        try:
+            response = gemini.invoke(prompt)
+            if not response:
+                response = "I'm not sure, but you can ask about farming techniques, soil health, or crop management."
+        except Exception:
+            response = "I'm currently unable to process your request. Please try again later."
 
-        if response:
-            st.markdown("### 🎓 AgriGPT Response:")
-            st.markdown(response.strip())
+        # Translate response back to user's original language
+        final_response = translate_response(response, user_lang)
 
-        else:
-            st.error("Unable to generate a response at the moment.")
+        st.write("**Answer:**")
+        st.write(final_response)
 
     else:
         st.warning("Please enter a question.")
 
 # Footer
 st.markdown("---")
-st.caption("🤖 Powered by Gemini 1.5 Flash, FAO SoilGrids, Open-Meteo, & OpenStreetMap")
+st.caption("🤖 Powered by Google Gemini 1.5 Flash & Local Document Retrieval")
