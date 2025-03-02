@@ -6,3 +6,4 @@ langchain-google-genai
 faiss-cpu  # Required for FAISS vector storage
 google-generativeai
 tiktoken  # Tokenizer required for LangChain
+googletrans
