@@ -16,4 +16,6 @@ faiss-cpu  # FAISS for efficient vector search
 googletrans==4.0.0-rc1  # Google Translation API (Auto-detect & Translate)
 deep-translator  # Alternative translator
 
-# Ensure no duplicate packages
+# Web Framework (if using FastAPI)
+fastapi
+uvicorn
