@@ -19,3 +19,18 @@ deep-translator  # Alternative translator
 # Web Framework (if using FastAPI)
 fastapi
 uvicorn
+
+# CORS Handling (For FastAPI & Frontend Integration)
+fastapi[all]  # Includes Starlette & useful utilities
+python-multipart  # Needed for handling form data (optional)
+
+# Logging & Debugging
+loguru  # Better logging than default logging module
+
+# Dependency Management
+pydantic  # Ensures strict type validation in FastAPI
+httpx  # Async HTTP client (alternative to requests, useful for async APIs)
+
+# Data Processing & Utilities
+numpy  # Needed for FAISS vector search operations
+pandas  # If processing structured agricultural data
