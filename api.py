@@ -1,10 +1,10 @@
 import os
 import logging
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware  # Import CORS Middleware
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
-from retriever import retriever  # Importing TXT retriever
+from retriever import retriever  # Ensure `retriever.py` is available
 from langchain_google_genai import GoogleGenerativeAI  # Gemini AI
 from googletrans import Translator  # Language translation
 
@@ -22,7 +22,7 @@ translator = Translator()
 # FastAPI App
 app = FastAPI()
 
-# Enable CORS
+# Enable CORS for frontend (Netlify URL allowed)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://agrigpt.netlify.app"],  # Allow only Netlify frontend
@@ -36,7 +36,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class QueryRequest(BaseModel):
-    question: str
+    question: str = Field(..., title="User Question", description="Query related to agriculture")
 
 @app.get("/")
 async def root():
@@ -47,7 +47,7 @@ async def ask_question(request: QueryRequest):
     query = request.question
     logger.info(f"Received question: {query}")
 
-    # Translate Query to English
+    # Translate Query to English if needed
     detected_lang = translator.detect(query).lang
     if detected_lang != "en":
         query = translator.translate(query, src=detected_lang, dest="en").text
