@@ -16,21 +16,18 @@ faiss-cpu  # FAISS for efficient vector search
 googletrans==4.0.0-rc1  # Google Translation API (Auto-detect & Translate)
 deep-translator  # Alternative translator
 
-# Web Framework (if using FastAPI)
+# Web Framework (FastAPI)
 fastapi
 uvicorn
+python-multipart  # Needed for handling form data
 
-# CORS Handling (For FastAPI & Frontend Integration)
-fastapi[all]  # Includes Starlette & useful utilities
-python-multipart  # Needed for handling form data (optional)
+# CORS & API Utilities
+fastapi-cors  # Lightweight CORS handling for FastAPI
 
 # Logging & Debugging
-loguru  # Better logging than default logging module
+loguru  # (Optional) Better logging than default `logging` module
 
-# Dependency Management
-pydantic  # Ensures strict type validation in FastAPI
-httpx  # Async HTTP client (alternative to requests, useful for async APIs)
-
-# Data Processing & Utilities
+# Dependency Management & Type Validation
+pydantic>=2.0  # Latest version for FastAPI compatibility
 numpy  # Needed for FAISS vector search operations
 pandas  # If processing structured agricultural data
