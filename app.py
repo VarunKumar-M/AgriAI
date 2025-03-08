@@ -7,7 +7,7 @@ st.title("🌱 AgriGPT - Your Agriculture Chatbot")
 st.write("Ask anything about agriculture, farming, or crop management.")
 
 # API Endpoint (Replace with your deployed FastAPI URL if running on cloud)
-API_URL = "http://127.0.0.1:8000/ask"
+API_URL = "https://agriai-i9bd.onrender.com/ask"
 
 # User Input
 query = st.text_input("Enter your question:")
