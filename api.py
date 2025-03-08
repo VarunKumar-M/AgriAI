@@ -1,6 +1,7 @@
 import os
 import logging
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware  # Import CORS Middleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from retriever import retriever  # Importing TXT retriever
@@ -20,6 +21,15 @@ translator = Translator()
 
 # FastAPI App
 app = FastAPI()
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://agrigpt.netlify.app"],  # Allow only Netlify frontend
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Logger setup
 logging.basicConfig(level=logging.INFO)
