@@ -1,0 +1,33 @@
+# Core Dependencies
+streamlit
+python-dotenv
+
+# LangChain & AI Model
+langchain
+langchain-community
+langchain-google-genai
+google-generativeai
+tiktoken  # Tokenizer for LangChain
+
+# Vector Storage
+faiss-cpu  # FAISS for efficient vector search
+
+# Translation & Language Support
+googletrans==4.0.0-rc1  # Google Translation API (Auto-detect & Translate)
+deep-translator  # Alternative translator
+
+# Web Framework (FastAPI)
+fastapi
+uvicorn
+python-multipart  # Needed for handling form data
+
+# CORS & API Utilities
+fastapi-cors  # Lightweight CORS handling for FastAPI
+
+# Logging & Debugging
+loguru  # (Optional) Better logging than default `logging` module
+
+# Dependency Management & Type Validation
+pydantic>=2.0  # Latest version for FastAPI compatibility
+numpy  # Needed for FAISS vector search operations
+pandas  # If processing structured agricultural data
