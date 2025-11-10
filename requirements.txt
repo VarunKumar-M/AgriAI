@@ -31,3 +31,6 @@ loguru  # (Optional) Better logging than default `logging` module
 pydantic>=2.0  # Latest version for FastAPI compatibility
 numpy  # Needed for FAISS vector search operations
 pandas  # If processing structured agricultural data
+
+pydantic==2.11.10
+pydantic-core==2.33.2
